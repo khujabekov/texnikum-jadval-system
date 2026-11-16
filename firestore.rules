@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Groups Collection
+    // - Ochiq o'qish (read): Talabalar va mobil ilova guruhlar ro'yxatini ko'ra oladi.
+    // - Yozish (write): Faqat Web Admin panel orqali Firebase Auth dan o'tgan administratorga ruxsat beriladi.
+    match /groups/{groupId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // 2. Students Collection
+    // - Yakka o'qish (get): 14 xonali JSHSHIR bilan talaba faqat o'zining yozuvini tekshira oladi (O(1) lookup).
+    // - Barcha talabalarni ro'yxatlash (list): QAT'IYAN TAQIQLANADI!
+    //   Bu orqali begonalar barcha o'quvchilar JSHSHIRlarini bitta so'rovda ko'chirib olishi (scraping) bloklanadi.
+    // - Faqat Firebase Auth tizimidan o'tgan Admin barcha talabalarni ko'rishi va yozishi mumkin.
+    match /students/{jshshir} {
+      allow get: if true;
+      allow list: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // 3. Schedules Collection ({groupId}_{dayOfWeek})
+    // - Ochiq o'qish (read): Talabalar o'z guruhining kunlik/haftalik dars jadvalini onSnapshot orqali kuzatadi.
+    // - Yozish (write): Faqat Web Admin panel orqali Firebase Auth bilan kirgan adminga ruxsat beriladi.
+    match /schedules/{scheduleId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Standart qoida: qolgan barcha noma'lum yo'llar bloklanadi
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

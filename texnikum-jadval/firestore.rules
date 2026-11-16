@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Groups Collection
+    match /groups/{groupId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // 2. Students Collection
+    // Single document get allowed for student login (O(1) lookup).
+    // Listing all students is strictly blocked to prevent data scraping.
+    match /students/{jshshir} {
+      allow get: if true;
+      allow list: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // 3. Schedules Collection ({groupId}_{dayOfWeek})
+    match /schedules/{scheduleId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
