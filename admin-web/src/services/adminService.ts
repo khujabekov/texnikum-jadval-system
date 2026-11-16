@@ -89,7 +89,10 @@ class AdminService {
     return localStorage.getItem(LOCAL_STORAGE_KEYS.AUTH) === 'true';
   }
 
-  async login(passwordOrEmail: string, optionalPassword?: string): Promise<boolean> {
+  async login(
+    passwordOrEmail: string,
+    optionalPassword?: string
+  ): Promise<{ success: boolean; error?: string }> {
     const password = optionalPassword !== undefined ? optionalPassword : passwordOrEmail;
     const email = optionalPassword !== undefined ? passwordOrEmail : 'admin@texnikum.uz';
 
@@ -98,18 +101,35 @@ class AdminService {
       try {
         await signInWithEmailAndPassword(auth, email, password);
         localStorage.setItem(LOCAL_STORAGE_KEYS.AUTH, 'true');
-        return true;
-      } catch {
-        // Fall back to local check if Firebase project not yet seeded with auth account
+        return { success: true };
+      } catch (err: any) {
+        console.warn('[AdminService] Firebase Auth login failed:', err?.code, err?.message);
+        let errorMsg = 'Login yoki parol xato kiritildi!';
+        if (err?.code === 'auth/user-not-found') {
+          errorMsg = "Ushbu email bilan admin topilmadi!";
+        } else if (err?.code === 'auth/wrong-password' || err?.code === 'auth/invalid-credential') {
+          errorMsg = "Parol noto'g'ri kiritildi!";
+        } else if (err?.code === 'auth/invalid-email') {
+          errorMsg = "Email manzili noto'g'ri shaklda!";
+        } else if (err?.code === 'auth/too-many-requests') {
+          errorMsg = "Ko'p marotaba xato urinish bo'ldi. Biroz kuting!";
+        }
+
+        // Local fallback check
+        if (password === 'admin123' || password === 'admin') {
+          localStorage.setItem(LOCAL_STORAGE_KEYS.AUTH, 'true');
+          return { success: true };
+        }
+        return { success: false, error: errorMsg };
       }
     }
 
     // 2. Local Fallback Auth (admin / admin123)
     if (password === 'admin123' || password === 'admin') {
       localStorage.setItem(LOCAL_STORAGE_KEYS.AUTH, 'true');
-      return true;
+      return { success: true };
     }
-    return false;
+    return { success: false, error: "Parol noto'g'ri! (Standart parol: admin123)" };
   }
 
   async logout(): Promise<void> {
@@ -614,6 +634,77 @@ class AdminService {
       duplicatesInInput: duplicateInInput,
       invalidFormat: invalidCount,
       totalFound: uniqueSet.size,
+    };
+  }
+
+  // --- SEED INITIAL DATA TO CLOUD FIRESTORE ---
+  async seedInitialDataToFirestore(): Promise<{ groupsCount: number; schedulesCount: number; studentsCount: number }> {
+    if (!isFirebaseReady || !firestore) {
+      throw new Error('Firebase Firestore ulanmagan!');
+    }
+
+    // 1. Guruhlarni Firestore'ga saqlash
+    for (const group of INITIAL_GROUPS) {
+      await setDoc(doc(firestore, 'groups', group.id), {
+        id: group.id,
+        name: group.name,
+        department: group.department,
+        courseYear: group.courseYear,
+        createdAt: serverTimestamp(),
+      }, { merge: true });
+    }
+
+    // 2. Dars jadvallarini Firestore'ga saqlash
+    const scheduleMap: Record<string, ScheduleDoc> = {};
+    for (const les of INITIAL_LESSONS) {
+      const dayNum = weekdayToDayNumber(les.day);
+      const schedId = `${les.groupId}_${dayNum}`;
+      if (!scheduleMap[schedId]) {
+        scheduleMap[schedId] = {
+          groupId: les.groupId,
+          dayOfWeek: dayNum,
+          lessons: [],
+          updatedAt: new Date().toISOString(),
+        };
+      }
+      scheduleMap[schedId].lessons.push({
+        id: les.id,
+        paraNumber: les.paraNumber || (les as any).pairNumber || 1,
+        timeRange: les.timeRange,
+        subjectName: les.subjectName,
+        teacherName: les.teacherName,
+        roomNumber: les.roomNumber,
+      });
+    }
+
+    for (const [schedId, sched] of Object.entries(scheduleMap)) {
+      await setDoc(doc(firestore, 'schedules', schedId), {
+        groupId: sched.groupId,
+        dayOfWeek: sched.dayOfWeek,
+        lessons: sched.lessons,
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
+    }
+
+    // 3. Talabalarni Firestore'ga saqlash
+    const batch = writeBatch(firestore);
+    for (const st of INITIAL_STUDENTS) {
+      const gName = INITIAL_GROUPS.find((g) => g.id === st.groupId)?.name || 'Guruh';
+      batch.set(doc(firestore, 'students', st.jshshir), {
+        jshshir: st.jshshir,
+        groupId: st.groupId,
+        groupName: gName,
+        fullName: st.fullName,
+        enrolledAt: st.enrolledAt,
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
+    }
+    await batch.commit();
+
+    return {
+      groupsCount: INITIAL_GROUPS.length,
+      schedulesCount: Object.keys(scheduleMap).length,
+      studentsCount: INITIAL_STUDENTS.length,
     };
   }
 

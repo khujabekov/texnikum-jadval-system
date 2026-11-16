@@ -1,20 +1,19 @@
 /**
  * Firebase Konfiguratsiyasi (Web Admin Client - Read/Write)
  * 
- * Firebase Console -> Project Settings -> General -> Your apps -> Web SDK
- * sozlamalarini quyidagi maydonlarga joylashtiring yoki VITE_FIREBASE_* env o'zgaruvchilarini belgilang.
+ * Haqiqiy Firebase loyihasi: texnikum-jadval-system
  */
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore, Firestore } from 'firebase/firestore';
+import { getFirestore, type Firestore } from 'firebase/firestore';
 import { getAuth, type Auth } from 'firebase/auth';
 
 export const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyDemoTexnikumScheduleApp2026Key',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'texnikum-jadval.firebaseapp.com',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'texnikum-jadval',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'texnikum-jadval.appspot.com',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '1029384756',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:1029384756:web:abcdef123456',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyAlWeJtfamWhPEyOGYz22yOJR6JYbBnz4k',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'texnikum-jadval-system.firebaseapp.com',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'texnikum-jadval-system',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'texnikum-jadval-system.firebasestorage.app',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '805565106524',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:805565106524:web:fa975d611aca1d05335999',
 };
 
 let app: any = null;
@@ -31,8 +30,9 @@ try {
   firestore = getFirestore(app);
   auth = getAuth(app);
   isFirebaseReady = true;
-} catch {
-  console.log('[Firebase] Web Admin panel lokal demo/fallback rejimida ishlamoqda');
+  console.log('[Firebase] Web Admin Firestore muvaffaqiyatli ishga tushdi (texnikum-jadval-system)');
+} catch (err) {
+  console.warn('[Firebase] Web Admin panel lokal demo/fallback rejimida ishlamoqda', err);
   isFirebaseReady = false;
 }
 

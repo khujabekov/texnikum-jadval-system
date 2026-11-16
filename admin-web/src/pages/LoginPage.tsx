@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Lock, Mail, ArrowRight, ShieldCheck, Loader2 } from 'lucide-react';
 import { adminService } from '../services/adminService';
 
 interface LoginPageProps {
@@ -7,7 +7,9 @@ interface LoginPageProps {
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
+  const [email, setEmail] = useState('admin@texnikum.uz');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -17,11 +19,20 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       return;
     }
 
-    const success = await adminService.login(password.trim());
-    if (success) {
-      onLoginSuccess();
-    } else {
-      setError("Parol noto'g'ri! (Standart parol: admin123)");
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await adminService.login(email.trim(), password.trim());
+      if (res.success) {
+        onLoginSuccess();
+      } else {
+        setError(res.error || "Parol noto'g'ri! (Standart: admin123)");
+      }
+    } catch {
+      setError("Tizimga kirishda kutilmagan xatolik yuz berdi");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -53,33 +64,66 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           <form onSubmit={handleSubmit} className="mt-6 space-y-4 text-left">
             <div>
               <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                Admin Emaili
+              </label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                <input
+                  type="email"
+                  required
+                  placeholder="admin@texnikum.uz"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (error) setError(null);
+                  }}
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-900/80 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
                 Admin Paroli
               </label>
-              <input
-                type="password"
-                required
-                placeholder="Parolni kiriting (Standart: admin123)"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (error) setError(null);
-                }}
-                className="w-full px-4 py-3 rounded-xl bg-slate-900/80 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-              />
+              <div className="relative">
+                <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                <input
+                  type="password"
+                  required
+                  placeholder="Parolni kiriting (Standart: admin123)"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (error) setError(null);
+                  }}
+                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-900/80 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                />
+              </div>
             </div>
 
             <button
               type="submit"
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg shadow-indigo-600/25 transition active:scale-[0.98] mt-2"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-sm shadow-lg shadow-indigo-600/25 transition active:scale-[0.98] mt-2"
             >
-              <span>Tizimga kirish</span>
-              <ArrowRight className="w-4 h-4" />
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Tekshirilmoqda...</span>
+                </>
+              ) : (
+                <>
+                  <span>Tizimga kirish</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
           </form>
 
           <div className="mt-8 pt-6 border-t border-slate-700/60 flex items-center justify-center gap-2 text-xs text-slate-400">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>Xavfsiz ma'lumotlar bazasi va Firestore integratsiyasi</span>
+            <span>Xavfsiz Firebase Auth va Firestore integratsiyasi</span>
           </div>
         </div>
       </div>

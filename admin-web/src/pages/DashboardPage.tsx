@@ -6,6 +6,9 @@ import {
   ArrowRight,
   Plus,
   BookOpen,
+  CloudUpload,
+  CheckCircle2,
+  Loader2,
 } from 'lucide-react';
 import type { Group, Lesson, StudentRecord } from '../types';
 import { adminService } from '../services/adminService';
@@ -20,6 +23,38 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [students, setStudents] = useState<StudentRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [seeding, setSeeding] = useState(false);
+  const [seedSuccess, setSeedSuccess] = useState<string | null>(null);
+
+  const handleSeedToFirestore = async () => {
+    if (
+      !window.confirm(
+        "Boshlang'ich namunaviy guruhlar, jadvallar va talabalar ro'yxatini Firebase Firestore bulutiga yuklamoqchimisiz?"
+      )
+    ) {
+      return;
+    }
+    setSeeding(true);
+    setSeedSuccess(null);
+    try {
+      const res = await adminService.seedInitialDataToFirestore();
+      setSeedSuccess(
+        `Firebase'ga yuklandi: ${res.groupsCount} ta guruh, ${res.schedulesCount} ta jadval, ${res.studentsCount} ta talaba JSHSHIRi!`
+      );
+      const [g, l, s] = await Promise.all([
+        adminService.getGroups(),
+        adminService.getLessons(),
+        adminService.getStudents(),
+      ]);
+      setGroups(g);
+      setLessons(l);
+      setStudents(s);
+    } catch (err: any) {
+      alert(`Xatolik: ${err?.message || "Firebase'ga yuklashda xatolik yuz berdi"}`);
+    } finally {
+      setSeeding(false);
+    }
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -89,7 +124,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
             Bu yerdan guruhlar ro'yxatini shakllantirish, dars jadvallarini kiritish, boshqa guruhlarga nusxalash va talabalarning 14 xonali JSHSHIR raqamlarini biriktirish mumkin. Kiritilgan barcha o'zgarishlar mobil ilovada bir zumda aks etadi.
           </p>
 
-          <div className="flex items-center gap-4 mt-6">
+          <div className="flex flex-wrap items-center gap-4 mt-6">
             <button
               onClick={() => onNavigate('schedule')}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-indigo-700 text-sm font-bold shadow-lg hover:bg-indigo-50 transition active:scale-95"
@@ -104,7 +139,31 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <Plus className="w-4 h-4" />
               <span>JSHSHIR yuklash</span>
             </button>
+            <button
+              onClick={handleSeedToFirestore}
+              disabled={seeding}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-60 text-white text-sm font-bold shadow-lg shadow-emerald-600/30 transition active:scale-95"
+            >
+              {seeding ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Bulutga yuklanmoqda...</span>
+                </>
+              ) : (
+                <>
+                  <CloudUpload className="w-4 h-4" />
+                  <span>Bazani to'ldirish (Seed Cloud)</span>
+                </>
+              )}
+            </button>
           </div>
+
+          {seedSuccess && (
+            <div className="mt-4 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-xs font-semibold text-emerald-200">
+              <CheckCircle2 className="w-4 h-4 text-emerald-300 shrink-0" />
+              <span>{seedSuccess}</span>
+            </div>
+          )}
         </div>
 
         {/* Decorative elements */}
