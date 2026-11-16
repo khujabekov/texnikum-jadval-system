@@ -118,7 +118,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
             O'quv Bo'limi Boshqaruvi
           </span>
           <h1 className="text-3xl font-extrabold mt-3 tracking-tight">
-            Texnikum Dars Jadvali Markaziy Paneli
+            Sirdaryo Ilg'or Kasbiy Mahorat Texnikumi Paneli
           </h1>
           <p className="text-indigo-100 text-sm mt-2 leading-relaxed">
             Bu yerdan guruhlar ro'yxatini shakllantirish, dars jadvallarini kiritish, boshqa guruhlarga nusxalash va talabalarning 14 xonali JSHSHIR raqamlarini biriktirish mumkin. Kiritilgan barcha o'zgarishlar mobil ilovada bir zumda aks etadi.

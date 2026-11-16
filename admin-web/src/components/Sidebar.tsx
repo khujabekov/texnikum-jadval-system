@@ -73,7 +73,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <Database className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-base font-bold text-white tracking-tight">Texnikum Jadval</h1>
+            <h1 className="text-base font-bold text-white tracking-tight">Sirdaryo IKMT</h1>
             <span className="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-400">
               Web Admin Panel
             </span>

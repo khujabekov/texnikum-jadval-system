@@ -7,6 +7,7 @@ import {
   Platform,
   ScrollView,
   Pressable,
+  Linking,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -65,10 +66,14 @@ export const StudentLoginScreen: React.FC<StudentLoginScreenProps> = ({
     }
   };
 
-  const handleTestFill = (code: string) => {
+  const handleOpenTelegram = () => {
     triggerLightHaptic();
-    setJshshir(code);
-    setError(null);
+    Linking.openURL('https://t.me/khujabekov_b').catch(() => {});
+  };
+
+  const handleOpenEmail = () => {
+    triggerLightHaptic();
+    Linking.openURL('mailto:khujabekovbakhrom@gmail.com').catch(() => {});
   };
 
   return (
@@ -106,10 +111,10 @@ export const StudentLoginScreen: React.FC<StudentLoginScreenProps> = ({
               </View>
 
               <Text style={[styles.appTitle, { color: colors.primaryText }]}>
-                Texnikum Dars Jadvali
+                Sirdaryo Ilg'or Kasbiy Mahorat Texnikumi
               </Text>
               <Text style={[styles.appSubtitle, { color: colors.secondaryText }]}>
-                Kasb-hunar ta'limi talabalarining dars jadvali axborot tizimi
+                Talabalar dars jadvali axborot tizimi
               </Text>
             </NeumorphicView>
           </View>
@@ -178,38 +183,73 @@ export const StudentLoginScreen: React.FC<StudentLoginScreenProps> = ({
               }
               style={styles.loginButton}
             />
+          </NeumorphicView>
 
-            {/* Quick Test Seed Pill Shortcuts */}
-            <View style={styles.quickFillSection}>
-              <Text style={[styles.quickFillTitle, { color: colors.secondaryText }]}>
-                Sinov uchun JSHSHIR namunalari:
-              </Text>
-              <View style={styles.chipsRow}>
+          {/* Dasturchi va Aloqa Ma'lumotlari Bloki */}
+          <View style={styles.contactWrapper}>
+            <NeumorphicView
+              borderRadius={22}
+              style={styles.contactCard}
+              contentStyle={styles.contactCardContent}
+            >
+              <View style={styles.devRow}>
+                <Ionicons name="code-slash" size={16} color={colors.accent} />
+                <Text style={[styles.devText, { color: colors.secondaryText }]}>
+                  Dasturchi:{' '}
+                  <Text style={[styles.devBold, { color: colors.primaryText }]}>
+                    Blitz Soft group
+                  </Text>
+                </Text>
+              </View>
+
+              <View
+                style={[
+                  styles.contactDivider,
+                  { backgroundColor: colors.insetBorder },
+                ]}
+              />
+
+              <View style={styles.contactButtonsRow}>
                 <Pressable
-                  onPress={() => handleTestFill('12345678901234')}
-                  style={[styles.testChip, { borderColor: colors.insetBorder, backgroundColor: colors.base }]}
+                  onPress={handleOpenTelegram}
+                  style={({ pressed }) => [
+                    styles.contactButton,
+                    {
+                      backgroundColor: colors.base,
+                      borderColor: colors.insetBorder,
+                      opacity: pressed ? 0.7 : 1,
+                    },
+                  ]}
                 >
-                  <Text style={[styles.chipText, { color: colors.accent }]}>
-                    21-24 AT: 12345678901234
+                  <Ionicons name="paper-plane" size={15} color="#0088cc" />
+                  <Text
+                    style={[styles.contactButtonText, { color: colors.primaryText }]}
+                  >
+                    @khujabekov_b
                   </Text>
                 </Pressable>
 
                 <Pressable
-                  onPress={() => handleTestFill('98765432109876')}
-                  style={[styles.testChip, { borderColor: colors.insetBorder, backgroundColor: colors.base }]}
+                  onPress={handleOpenEmail}
+                  style={({ pressed }) => [
+                    styles.contactButton,
+                    {
+                      backgroundColor: colors.base,
+                      borderColor: colors.insetBorder,
+                      opacity: pressed ? 0.7 : 1,
+                    },
+                  ]}
                 >
-                  <Text style={[styles.chipText, { color: colors.accent }]}>
-                    11-25 DT: 98765432109876
+                  <Ionicons name="mail" size={15} color="#EA4335" />
+                  <Text
+                    style={[styles.contactButtonText, { color: colors.primaryText }]}
+                  >
+                    Email yozish
                   </Text>
                 </Pressable>
               </View>
-            </View>
-          </NeumorphicView>
-
-          {/* Footer Note */}
-          <Text style={[styles.footerText, { color: colors.secondaryText }]}>
-            O'zbekiston Respublikasi Oliy ta'lim, fan va innovatsiyalar vazirligi tizimi
-          </Text>
+            </NeumorphicView>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -237,29 +277,30 @@ const styles = StyleSheet.create({
   },
   heroWrapper: {
     width: '100%',
-    marginVertical: 16,
+    marginVertical: 14,
   },
   heroOuter: {
     width: '100%',
   },
   heroInner: {
-    paddingVertical: 26,
-    paddingHorizontal: 20,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
     alignItems: 'center',
   },
   logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 76,
+    height: 76,
+    borderRadius: 38,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 14,
   },
   appTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
     textAlign: 'center',
-    letterSpacing: -0.5,
+    letterSpacing: -0.4,
+    lineHeight: 26,
   },
   appSubtitle: {
     fontSize: 13,
@@ -300,36 +341,55 @@ const styles = StyleSheet.create({
   loginButton: {
     marginTop: 18,
   },
-  quickFillSection: {
-    marginTop: 20,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(160, 175, 195, 0.2)',
+  contactWrapper: {
+    width: '100%',
+    marginTop: 18,
   },
-  quickFillTitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginBottom: 8,
+  contactCard: {
+    width: '100%',
   },
-  chipsRow: {
-    flexDirection: 'column',
+  contactCardContent: {
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    alignItems: 'center',
+  },
+  devRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
-  testChip: {
-    paddingVertical: 8,
+  devText: {
+    fontSize: 13,
+  },
+  devBold: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  contactDivider: {
+    width: '100%',
+    height: 1,
+    marginVertical: 12,
+  },
+  contactButtonsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    width: '100%',
+  },
+  contactButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
     paddingHorizontal: 12,
-    borderRadius: 10,
+    borderRadius: 14,
     borderWidth: 1,
   },
-  chipText: {
+  contactButtonText: {
     fontSize: 12,
     fontWeight: '600',
-  },
-  footerText: {
-    fontSize: 11,
-    textAlign: 'center',
-    marginTop: 24,
-    lineHeight: 16,
-    maxWidth: 280,
   },
 });

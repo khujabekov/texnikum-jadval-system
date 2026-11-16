@@ -1,21 +1,31 @@
 {
   "expo": {
-    "name": "Texnikum Dars Jadvali",
-    "slug": "texnikum-jadval",
+    "name": "Sirdaryo IKMT Jadval",
+    "slug": "sirdaryo-texnikum-jadval",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F8FAFC"
+    },
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "package": "uz.texnikum.jadval",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
+      "permissions": [
+        "INTERNET"
+      ],
       "predictiveBackGestureEnabled": false
     },
     "web": {
