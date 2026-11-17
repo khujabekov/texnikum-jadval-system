@@ -10,6 +10,7 @@ import {
   X,
   AlertCircle,
   Calendar,
+  Printer,
 } from 'lucide-react';
 import { WEEKDAYS, type Group, type Lesson, type Weekday } from '../types';
 import { adminService } from '../services/adminService';
@@ -39,6 +40,10 @@ export const SchedulePage: React.FC = () => {
   const [copyScope, setCopyScope] = useState<'day' | 'week'>('day');
   const [copying, setCopying] = useState(false);
   const [copyError, setCopyError] = useState<string | null>(null);
+
+  // A4 PDF Print State
+  const [allWeekLessons, setAllWeekLessons] = useState<Lesson[]>([]);
+  const [printing, setPrinting] = useState(false);
 
   const standardTimes: Record<number, string> = {
     1: '08:30 - 09:50',
@@ -185,6 +190,22 @@ export const SchedulePage: React.FC = () => {
     }
   };
 
+  const handlePrintSchedule = async () => {
+    if (!selectedGroupId) return;
+    setPrinting(true);
+    try {
+      const all = await adminService.getLessons(selectedGroupId);
+      setAllWeekLessons(all);
+      setTimeout(() => {
+        window.print();
+        setPrinting(false);
+      }, 200);
+    } catch {
+      setPrinting(false);
+      alert('Chop etishda xatolik yuz berdi');
+    }
+  };
+
   return (
     <div className="flex-1 p-8 overflow-y-auto space-y-6">
       {/* 1. Group Selector Pill Bar */}
@@ -236,6 +257,16 @@ export const SchedulePage: React.FC = () => {
 
         {/* Toolbar Buttons */}
         <div className="flex items-center gap-3 shrink-0">
+          <button
+            onClick={handlePrintSchedule}
+            disabled={!selectedGroup || printing}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition active:scale-95 disabled:opacity-50"
+            title="A4 formatda PDF saqlash yoki chop etish"
+          >
+            <Printer className="w-3.5 h-3.5 text-indigo-600" />
+            <span>{printing ? 'Tayyorlanmoqda...' : 'A4 PDF Chop etish'}</span>
+          </button>
+
           <button
             onClick={openCopyModal}
             disabled={!selectedGroup}
@@ -551,6 +582,117 @@ export const SchedulePage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* ── Official A4 Printable Schedule View (Rendered only on print/PDF) ── */}
+      <div className="print-only font-serif text-black p-4">
+        {/* Header */}
+        <div className="text-center border-b-2 border-black pb-3 mb-3">
+          <p className="text-[11px] uppercase font-bold tracking-wider">
+            O'zbekiston Respublikasi Oliy ta'lim, fan va innovatsiyalar vazirligi
+          </p>
+          <h1 className="text-base font-black uppercase mt-1">
+            Sirdaryo Ilg'or Kasbiy Mahorat Texnikumi
+          </h1>
+          <h2 className="text-xs font-bold uppercase mt-1 tracking-wide">
+            2025/2026-O'quv yili uchun haftalik dars jadvali
+          </h2>
+        </div>
+
+        {/* Group Meta & Approval Box */}
+        <div className="flex justify-between items-start text-xs mb-3">
+          <div className="space-y-0.5">
+            <p><strong>Guruh:</strong> {selectedGroup?.name}</p>
+            <p><strong>Yo'nalish:</strong> {selectedGroup?.department}</p>
+            <p><strong>Kurs / Bosqich:</strong> {selectedGroup?.courseYear}-kurs</p>
+          </div>
+          <div className="text-right space-y-0.5">
+            <p className="font-bold">"TASDIQLAYMAN"</p>
+            <p>O'quv ishlari bo'yicha dir. o'rinbosari</p>
+            <p>___________________ (imzo)</p>
+            <p>2026-yil "___" _____________</p>
+          </div>
+        </div>
+
+        {/* Weekly Table */}
+        <table className="w-full border-collapse border border-black text-xs">
+          <thead>
+            <tr className="bg-slate-100 border border-black font-bold">
+              <th className="border border-black p-1.5 w-24">Kun</th>
+              <th className="border border-black p-1.5 w-12 text-center">Para</th>
+              <th className="border border-black p-1.5 w-24 text-center">Vaqt</th>
+              <th className="border border-black p-1.5 text-left">Fan nomi</th>
+              <th className="border border-black p-1.5 text-left">O'qituvchi</th>
+              <th className="border border-black p-1.5 w-16 text-center">Xona</th>
+            </tr>
+          </thead>
+          <tbody>
+            {WEEKDAYS.map((day) => {
+              const dayLessons = allWeekLessons
+                .filter((l) => l.day === day.key)
+                .sort(
+                  (a, b) =>
+                    (a.paraNumber || a.pairNumber || 0) -
+                    (b.paraNumber || b.pairNumber || 0)
+                );
+
+              if (dayLessons.length === 0) {
+                return (
+                  <tr key={day.key} className="border border-black">
+                    <td className="border border-black p-1.5 font-bold bg-slate-50">
+                      {day.label}
+                    </td>
+                    <td
+                      colSpan={5}
+                      className="border border-black p-1.5 text-center text-slate-500 italic"
+                    >
+                      Darslar belgilanmagan
+                    </td>
+                  </tr>
+                );
+              }
+
+              return dayLessons.map((les, idx) => (
+                <tr key={les.id} className="border border-black">
+                  {idx === 0 && (
+                    <td
+                      rowSpan={dayLessons.length}
+                      className="border border-black p-1.5 font-bold align-top bg-slate-50"
+                    >
+                      {day.label}
+                    </td>
+                  )}
+                  <td className="border border-black p-1.5 text-center font-bold">
+                    {les.paraNumber || les.pairNumber}
+                  </td>
+                  <td className="border border-black p-1.5 text-center">
+                    {les.timeRange}
+                  </td>
+                  <td className="border border-black p-1.5 font-semibold">
+                    {les.subjectName}
+                  </td>
+                  <td className="border border-black p-1.5">{les.teacherName}</td>
+                  <td className="border border-black p-1.5 text-center font-bold">
+                    {les.roomNumber}
+                  </td>
+                </tr>
+              ));
+            })}
+          </tbody>
+        </table>
+
+        {/* Signatures */}
+        <div className="flex justify-between items-center text-xs mt-6 pt-3 border-t border-black">
+          <div>
+            <p>Bo'lim boshlig'i: ______________________</p>
+          </div>
+          <div>
+            <p>Kafedra mudiri / Mas'ul: ______________________</p>
+          </div>
+          <div className="text-right text-[10px] text-slate-600 font-sans">
+            <p>Dasturiy ta'minot: Blitz Soft group</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

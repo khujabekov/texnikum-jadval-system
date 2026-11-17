@@ -66,16 +66,6 @@ export const StudentLoginScreen: React.FC<StudentLoginScreenProps> = ({
     }
   };
 
-  const handleOpenTelegram = () => {
-    triggerLightHaptic();
-    Linking.openURL('https://t.me/khujabekov_b').catch(() => {});
-  };
-
-  const handleOpenEmail = () => {
-    triggerLightHaptic();
-    Linking.openURL('mailto:khujabekovbakhrom@gmail.com').catch(() => {});
-  };
-
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.base }]}
@@ -185,10 +175,10 @@ export const StudentLoginScreen: React.FC<StudentLoginScreenProps> = ({
             />
           </NeumorphicView>
 
-          {/* Dasturchi va Aloqa Ma'lumotlari Bloki */}
+          {/* Dasturchi Ma'lumotlari Bloki */}
           <View style={styles.contactWrapper}>
             <NeumorphicView
-              borderRadius={22}
+              borderRadius={20}
               style={styles.contactCard}
               contentStyle={styles.contactCardContent}
             >
@@ -200,53 +190,6 @@ export const StudentLoginScreen: React.FC<StudentLoginScreenProps> = ({
                     Blitz Soft group
                   </Text>
                 </Text>
-              </View>
-
-              <View
-                style={[
-                  styles.contactDivider,
-                  { backgroundColor: colors.insetBorder },
-                ]}
-              />
-
-              <View style={styles.contactButtonsRow}>
-                <Pressable
-                  onPress={handleOpenTelegram}
-                  style={({ pressed }) => [
-                    styles.contactButton,
-                    {
-                      backgroundColor: colors.base,
-                      borderColor: colors.insetBorder,
-                      opacity: pressed ? 0.7 : 1,
-                    },
-                  ]}
-                >
-                  <Ionicons name="paper-plane" size={15} color="#0088cc" />
-                  <Text
-                    style={[styles.contactButtonText, { color: colors.primaryText }]}
-                  >
-                    @khujabekov_b
-                  </Text>
-                </Pressable>
-
-                <Pressable
-                  onPress={handleOpenEmail}
-                  style={({ pressed }) => [
-                    styles.contactButton,
-                    {
-                      backgroundColor: colors.base,
-                      borderColor: colors.insetBorder,
-                      opacity: pressed ? 0.7 : 1,
-                    },
-                  ]}
-                >
-                  <Ionicons name="mail" size={15} color="#EA4335" />
-                  <Text
-                    style={[styles.contactButtonText, { color: colors.primaryText }]}
-                  >
-                    Email yozish
-                  </Text>
-                </Pressable>
               </View>
             </NeumorphicView>
           </View>
@@ -349,7 +292,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   contactCardContent: {
-    paddingVertical: 16,
+    paddingVertical: 14,
     paddingHorizontal: 18,
     alignItems: 'center',
   },
@@ -364,32 +307,5 @@ const styles = StyleSheet.create({
   devBold: {
     fontSize: 13,
     fontWeight: '700',
-  },
-  contactDivider: {
-    width: '100%',
-    height: 1,
-    marginVertical: 12,
-  },
-  contactButtonsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    width: '100%',
-  },
-  contactButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-  },
-  contactButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
   },
 });

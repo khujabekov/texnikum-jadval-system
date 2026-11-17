@@ -7,6 +7,7 @@ import {
   RefreshControl,
   AppState,
   AppStateStatus,
+  Share,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Lesson, Weekday } from '../../types';
@@ -15,7 +16,10 @@ import { useTheme } from '../../theme/ThemeContext';
 import { LessonCard, BreakIndicator, LessonStatus } from './components/LessonCard';
 import { EmptyState } from '../../components/EmptyState';
 import { NeumorphicView } from '../../components/NeumorphicView';
+import { NeumorphicIconButton } from '../../components/NeumorphicIconButton';
 import { calculateLessonProgress } from '../../utils/time';
+import { triggerLightHaptic } from '../../utils/haptics';
+import { notificationService } from '../../services/notificationService';
 
 interface TodayScheduleTabProps {
   groupId: string;
@@ -190,6 +194,34 @@ export const TodayScheduleTab: React.FC<TodayScheduleTabProps> = ({
     [lessons, lessonStates]
   );
 
+  const reminder = useMemo(() => {
+    return notificationService.getNextLessonReminder(lessons, currentTimeMinutes);
+  }, [lessons, currentTimeMinutes]);
+
+  const handleShareTodaySchedule = async () => {
+    triggerLightHaptic();
+    if (lessons.length === 0) {
+      await Share.share({
+        message: `📅 Sirdaryo Ilg'or Kasbiy Mahorat Texnikumi\n👥 Guruh: ${groupName}\n🗓 ${formattedDate}\n\nBugun darslar mavjud emas (Dam olish kuni).`,
+      });
+      return;
+    }
+
+    let text = `📅 Sirdaryo Ilg'or Kasbiy Mahorat Texnikumi\n👥 Guruh: ${groupName}\n🗓 ${formattedDate}\n\n`;
+    for (const les of lessons) {
+      text += `🔹 ${les.pairNumber}-para (${les.timeRange})\n`;
+      text += `📖 Fan: ${les.subjectName}\n`;
+      text += `👨‍🏫 O'qituvchi: ${les.teacherName}\n`;
+      text += `🚪 Xona: ${les.roomNumber}\n\n`;
+    }
+    text += `📱 Blitz Soft group`;
+
+    await Share.share({
+      title: `${groupName} - Bugungi Dars Jadvali`,
+      message: text,
+    });
+  };
+
   return (
     <ScrollView
       style={styles.container}
@@ -248,11 +280,24 @@ export const TodayScheduleTab: React.FC<TodayScheduleTabProps> = ({
               </View>
             </View>
 
-            {/* Right: Badge */}
-            <View style={[styles.countBadge, { backgroundColor: colors.badgeBg }]}>
-              <Text style={[styles.countText, { color: colors.accent }]}>
-                {lessons.length} ta para
-              </Text>
+            {/* Right: Badge & Share Button */}
+            <View style={styles.bannerRight}>
+              <View style={[styles.countBadge, { backgroundColor: colors.badgeBg }]}>
+                <Text style={[styles.countText, { color: colors.accent }]}>
+                  {lessons.length} ta para
+                </Text>
+              </View>
+              <NeumorphicIconButton
+                size={34}
+                icon={
+                  <Ionicons
+                    name="share-social-outline"
+                    size={17}
+                    color={colors.accent}
+                  />
+                }
+                onPress={handleShareTodaySchedule}
+              />
             </View>
           </View>
 
@@ -275,6 +320,19 @@ export const TodayScheduleTab: React.FC<TodayScheduleTabProps> = ({
                     numberOfLines={1}
                   >
                     Hozir {activeOngoingLesson.pairNumber}-para darsi ketmoqda
+                  </Text>
+                </>
+              ) : reminder ? (
+                <>
+                  <Ionicons name="notifications" size={15} color="#D97706" />
+                  <Text
+                    style={[
+                      styles.liveStatusText,
+                      { color: '#D97706', fontWeight: '800' },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    Darsga {reminder.minutesUntilLesson} daqiqa qoldi: {reminder.lesson.subjectName} ({reminder.lesson.roomNumber}-xona)
                   </Text>
                 </>
               ) : allCompleted ? (
@@ -423,6 +481,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 11,
     paddingVertical: 7,
     borderRadius: 11,
+    flexShrink: 0,
+  },
+  bannerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
     flexShrink: 0,
     marginLeft: 8,
   },

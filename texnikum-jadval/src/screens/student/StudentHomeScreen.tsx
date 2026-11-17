@@ -6,7 +6,6 @@ import {
   Alert,
   Modal,
   Pressable,
-  Linking,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,6 +20,7 @@ import { triggerLightHaptic } from '../../utils/haptics';
 import { TodayScheduleTab } from './TodayScheduleTab';
 import { WeeklyScheduleTab } from './WeeklyScheduleTab';
 import { FloatingTabBar, StudentTabKey } from './components/FloatingTabBar';
+import { BellsScheduleModal } from './components/BellsScheduleModal';
 
 interface StudentHomeScreenProps {
   group: Group;
@@ -36,6 +36,7 @@ export const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
   const { colors, mode } = useTheme();
   const [activeTab, setActiveTab] = useState<StudentTabKey>('today');
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [showBellsModal, setShowBellsModal] = useState(false);
 
   const handleLogoutPress = () => {
     Alert.alert(
@@ -52,16 +53,6 @@ export const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
     );
   };
 
-  const handleOpenTelegram = () => {
-    triggerLightHaptic();
-    Linking.openURL('https://t.me/khujabekov_b').catch(() => {});
-  };
-
-  const handleOpenEmail = () => {
-    triggerLightHaptic();
-    Linking.openURL('mailto:khujabekovbakhrom@gmail.com').catch(() => {});
-  };
-
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.base }]}
@@ -74,6 +65,10 @@ export const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
         title={group.name}
         subtitle={group.department}
         badge={`JSHSHIR: ${maskJshshir(jshshir)}`}
+        onBells={() => {
+          triggerLightHaptic();
+          setShowBellsModal(true);
+        }}
         onInfo={() => {
           triggerLightHaptic();
           setShowInfoModal(true);
@@ -167,7 +162,7 @@ export const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
                 </View>
               </View>
 
-              {/* Developer & Contacts */}
+              {/* Developer */}
               <View style={styles.devSection}>
                 <View style={styles.devHeaderRow}>
                   <Ionicons name="code-slash" size={16} color={colors.accent} />
@@ -177,52 +172,6 @@ export const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
                       Blitz Soft group
                     </Text>
                   </Text>
-                </View>
-
-                <View style={styles.contactRow}>
-                  <Pressable
-                    onPress={handleOpenTelegram}
-                    style={({ pressed }) => [
-                      styles.contactPill,
-                      {
-                        backgroundColor: colors.base,
-                        borderColor: colors.insetBorder,
-                        opacity: pressed ? 0.7 : 1,
-                      },
-                    ]}
-                  >
-                    <Ionicons name="paper-plane" size={14} color="#0088cc" />
-                    <Text
-                      style={[
-                        styles.contactPillText,
-                        { color: colors.primaryText },
-                      ]}
-                    >
-                      @khujabekov_b
-                    </Text>
-                  </Pressable>
-
-                  <Pressable
-                    onPress={handleOpenEmail}
-                    style={({ pressed }) => [
-                      styles.contactPill,
-                      {
-                        backgroundColor: colors.base,
-                        borderColor: colors.insetBorder,
-                        opacity: pressed ? 0.7 : 1,
-                      },
-                    ]}
-                  >
-                    <Ionicons name="mail" size={14} color="#EA4335" />
-                    <Text
-                      style={[
-                        styles.contactPillText,
-                        { color: colors.primaryText },
-                      ]}
-                    >
-                      Email
-                    </Text>
-                  </Pressable>
                 </View>
               </View>
 
@@ -238,6 +187,12 @@ export const StudentHomeScreen: React.FC<StudentHomeScreenProps> = ({
           </View>
         </View>
       </Modal>
+
+      {/* Bells Schedule Modal */}
+      <BellsScheduleModal
+        visible={showBellsModal}
+        onClose={() => setShowBellsModal(false)}
+      />
     </SafeAreaView>
   );
 };
@@ -315,37 +270,15 @@ const styles = StyleSheet.create({
   devSection: {
     width: '100%',
     alignItems: 'center',
-    marginVertical: 8,
+    marginVertical: 10,
   },
   devHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 10,
   },
   devTitle: {
     fontSize: 13,
-  },
-  contactRow: {
-    flexDirection: 'row',
-    gap: 10,
-    width: '100%',
-    justifyContent: 'center',
-  },
-  contactPill: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  contactPillText: {
-    fontSize: 11,
-    fontWeight: '600',
   },
   closeBtn: {
     width: '100%',

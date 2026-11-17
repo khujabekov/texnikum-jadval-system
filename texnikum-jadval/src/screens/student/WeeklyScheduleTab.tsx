@@ -8,6 +8,7 @@ import {
   Animated,
   RefreshControl,
   Platform,
+  Share,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -67,6 +68,30 @@ export const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({
     loadLessons();
   };
 
+  const handleShareWeeklySchedule = async () => {
+    triggerLightHaptic();
+    if (lessons.length === 0) {
+      await Share.share({
+        message: `📅 Sirdaryo Ilg'or Kasbiy Mahorat Texnikumi\n👥 Guruh: ${groupName}\n🗓 Kun: ${selectedDay}\n\nUshbu kunda darslar mavjud emas.`,
+      });
+      return;
+    }
+
+    let text = `📅 Sirdaryo Ilg'or Kasbiy Mahorat Texnikumi\n👥 Guruh: ${groupName}\n🗓 Kun: ${selectedDay}\n\n`;
+    for (const les of lessons) {
+      text += `🔹 ${les.pairNumber}-para (${les.timeRange})\n`;
+      text += `📖 Fan: ${les.subjectName}\n`;
+      text += `👨‍🏫 O'qituvchi: ${les.teacherName}\n`;
+      text += `🚪 Xona: ${les.roomNumber}\n\n`;
+    }
+    text += `📱 Blitz Soft group`;
+
+    await Share.share({
+      title: `${groupName} - ${selectedDay} Dars Jadvali`,
+      message: text,
+    });
+  };
+
   const handleSelectDay = (day: Weekday) => {
     triggerLightHaptic();
     setSelectedDay(day);
@@ -100,9 +125,21 @@ export const WeeklyScheduleTab: React.FC<WeeklyScheduleTabProps> = ({
             {selectedDay}
           </Text>
         </View>
-        <Text style={[styles.infoCount, { color: colors.secondaryText }]}>
-          {lessons.length} ta dars
-        </Text>
+        <View style={styles.infoRight}>
+          <Text style={[styles.infoCount, { color: colors.secondaryText }]}>
+            {lessons.length} ta dars
+          </Text>
+          <Pressable
+            onPress={handleShareWeeklySchedule}
+            hitSlop={8}
+            style={({ pressed }) => [
+              styles.shareIconBtn,
+              { backgroundColor: colors.accentLight, opacity: pressed ? 0.7 : 1 },
+            ]}
+          >
+            <Ionicons name="share-social-outline" size={15} color={colors.accent} />
+          </Pressable>
+        </View>
       </View>
 
       {/* ── Timeline Lessons List ── */}
@@ -314,6 +351,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     flexShrink: 0,
+  },
+  infoRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flexShrink: 0,
+  },
+  shareIconBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scrollList: {
     flex: 1,

@@ -12,6 +12,7 @@ interface HeaderProps {
   onLogout?: () => void;
   onBack?: () => void;
   onInfo?: () => void;
+  onBells?: () => void;
   rightAction?: React.ReactNode;
 }
 
@@ -22,6 +23,7 @@ export const Header: React.FC<HeaderProps> = ({
   onLogout,
   onBack,
   onInfo,
+  onBells,
   rightAction,
 }) => {
   const { colors } = useTheme();
@@ -72,6 +74,13 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Right section: fixed-shrink, never grows */}
       <View style={styles.rightRow}>
         <ThemeToggle />
+        {onBells ? (
+          <NeumorphicIconButton
+            size={38}
+            icon={<Ionicons name="notifications-outline" size={18} color={colors.accent} />}
+            onPress={onBells}
+          />
+        ) : null}
         {onInfo ? (
           <NeumorphicIconButton
             size={38}
